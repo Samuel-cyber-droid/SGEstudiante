@@ -56,7 +56,36 @@ class Estudiante {
 }
 
 class SistemaGestionEstudiantes {
+    private Map<String, Estudiante> estudiantes;
+    private Map<String, Integer> contadorOperaciones;
+    private Map<String, Long> consumoMemoria;
 
+    public SistemaGestionEstudiantes(){
+        estudiantes = new HashMap<>();
+        contadorOperaciones = new HashMap<>();
+        consumoMemoria = new HashMap<>();
+
+        //inicializacion de contadores
+        contadorOperaciones.put("alta", 0);
+        contadorOperaciones.put("baja", 0);
+        contadorOperaciones.put("modificaci[on", 0);
+        contadorOperaciones.put("busqueda", 0);
+        contadorOperaciones.put("listado", 0);
+    }
+
+    private long getUsedMemory(){
+        Runtime runtime = Runtime.getRuntime();
+        return (runtime.totalMemory() - runtime.freeMemory()) / 1024;
+    }
+
+    public boolean altaEstudiante(String idEstudiante, String nombre, String apellido, int edad, String carrera){
+        long memoriaInicio = getUsedMemory();
+
+        if (estudiantes.containsKey(idEstudiante)){
+            System.out.println("Error, Ya existe un estudiante con ese ID");
+            return false;
+        }
+    }
 }
 
 public class Main {
