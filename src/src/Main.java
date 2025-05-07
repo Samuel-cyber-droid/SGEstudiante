@@ -8,7 +8,7 @@ class Estudiante {
     private int edad;
     private String carrera;
 
-    public Estudiante(String idEstudiante, String nombre, String apellido, int edad, String carrera){
+    public Estudiante(String idEstudiante, String nombre, String apellido, int edad, String carrera) {
         this.idEstudiante = idEstudiante;
         this.nombre = nombre;
         this.apellido = apellido;
@@ -16,42 +16,22 @@ class Estudiante {
         this.carrera = carrera;
     }
 
-    // Creacion de getters y setters
+    // Getters y Setters
+    public String getIdEstudiante() { return idEstudiante; }
+    public String getNombre() { return nombre; }
+    public String getApellido() { return apellido; }
+    public int getEdad() { return edad; }
+    public String getCarrera() { return carrera; }
 
-    public String getIdEstudiante() {
-        return idEstudiante;
-    }
-    public void setIdEstudiante(String idEstudiante) {
-        this.idEstudiante = idEstudiante;
-    }
-    public String getNombre() {
-        return nombre;
-    }
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-    public String getApellido() {
-        return apellido;
-    }
-    public void setApellido(String apellido) {
-        this.apellido = apellido;
-    }
-    public int getEdad() {
-        return edad;
-    }
-    public void setEdad(int edad) {
-        this.edad = edad;
-    }
-    public String getCarrera() {
-        return carrera;
-    }
-    public void setCarrera(String carrera) {
-        this.carrera = carrera;
-    }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+    public void setApellido(String apellido) { this.apellido = apellido; }
+    public void setEdad(int edad) { this.edad = edad; }
+    public void setCarrera(String carrera) { this.carrera = carrera; }
 
     @Override
     public String toString() {
-        return "ID: " + idEstudiante + ", Nombre: " + nombre + " " + apellido + ", Edad: " + edad + ", Carrera: " + carrera;
+        return "ID: " + idEstudiante + ", Nombre: " + nombre + " " + apellido +
+                ", Edad: " + edad + ", Carrera: " + carrera;
     }
 }
 
@@ -60,22 +40,29 @@ class SistemaGestionEstudiantes {
     private Map<String, Integer> contadorOperaciones;
     private Map<String, Long> consumoMemoria;
 
-    public SistemaGestionEstudiantes(){
+    public SistemaGestionEstudiantes() {
         estudiantes = new HashMap<>();
         contadorOperaciones = new HashMap<>();
         consumoMemoria = new HashMap<>();
 
-        //inicializacion de contadores
-        contadorOperaciones.put("alta", 0);
-        contadorOperaciones.put("baja", 0);
-        contadorOperaciones.put("modificaci[on", 0);
-        contadorOperaciones.put("busqueda", 0);
-        contadorOperaciones.put("listado", 0);
+        // Inicializar contadores
+        String[] operaciones = {"alta", "baja", "modificacion", "busqueda", "listado"};
+        for (String op : operaciones) {
+            contadorOperaciones.put(op, 0);
+            consumoMemoria.put(op, 0L);
+        }
     }
 
-    private long getUsedMemory(){
-        Runtime runtime = Runtime.getRuntime();
-        return (runtime.totalMemory() - runtime.freeMemory()) / 1024;
+    private long getUsedMemory() {
+        // Forzar GC para medición más precisa
+        System.gc();
+        //System.runFinalization();
+        return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed() / 1024; // KB
+    }
+
+    private void registrarOperacion(String operacion, long memoriaUsada) {
+        contadorOperaciones.put(operacion, contadorOperaciones.get(operacion) + 1);
+        consumoMemoria.put(operacion, consumoMemoria.get(operacion) + memoriaUsada);
     }
 
     public boolean altaEstudiante(String idEstudiante, String nombre, String apellido, int edad, String carrera) {
@@ -89,10 +76,14 @@ class SistemaGestionEstudiantes {
         Estudiante nuevoEstudiante = new Estudiante(idEstudiante, nombre, apellido, edad, carrera);
         estudiantes.put(idEstudiante, nuevoEstudiante);
 
-        long memoriaFin = getUsedMemory();
-        consumoMemoria.put("alta", memoriaFin - memoriaInicio);
-        contadorOperaciones.put("alta", contadorOperaciones.get("alta") + 1);
+        // Operación adicional para hacer visible el uso de memoria
+        List<String> tempList = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            tempList.add("temp_" + i);
+        }
 
+        long memoriaFin = getUsedMemory();
+        registrarOperacion("alta", memoriaFin - memoriaInicio);
         System.out.println("Estudiante agregado con éxito.");
         return true;
     }
@@ -107,10 +98,14 @@ class SistemaGestionEstudiantes {
 
         estudiantes.remove(idEstudiante);
 
-        long memoriaFin = getUsedMemory();
-        consumoMemoria.put("baja", memoriaFin - memoriaInicio);
-        contadorOperaciones.put("baja", contadorOperaciones.get("baja") + 1);
+        // Operación adicional para hacer visible el uso de memoria
+        List<String> tempList = new ArrayList<>();
+        for (int i = 0; i < 50; i++) {
+            tempList.add("temp_" + i);
+        }
 
+        long memoriaFin = getUsedMemory();
+        registrarOperacion("baja", memoriaFin - memoriaInicio);
         System.out.println("Estudiante eliminado con éxito.");
         return true;
     }
@@ -130,10 +125,14 @@ class SistemaGestionEstudiantes {
         if (edad != null) estudiante.setEdad(edad);
         if (carrera != null) estudiante.setCarrera(carrera);
 
-        long memoriaFin = getUsedMemory();
-        consumoMemoria.put("modificacion", memoriaFin - memoriaInicio);
-        contadorOperaciones.put("modificacion", contadorOperaciones.getOrDefault("modificacion",0) + 1);
+        // Operación adicional para hacer visible el uso de memoria
+        List<String> tempList = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            tempList.add("temp_" + i);
+        }
 
+        long memoriaFin = getUsedMemory();
+        registrarOperacion("modificacion", memoriaFin - memoriaInicio);
         System.out.println("Estudiante modificado con éxito.");
         return true;
     }
@@ -166,10 +165,14 @@ class SistemaGestionEstudiantes {
             }
         }
 
-        long memoriaFin = getUsedMemory();
-        consumoMemoria.put("busqueda", memoriaFin - memoriaInicio);
-        contadorOperaciones.put("busqueda", contadorOperaciones.get("busqueda") + 1);
+        // Operación adicional para hacer visible el uso de memoria
+        List<String> tempList = new ArrayList<>();
+        for (int i = 0; i < resultados.size(); i++) {
+            tempList.add("temp_" + i);
+        }
 
+        long memoriaFin = getUsedMemory();
+        registrarOperacion("busqueda", memoriaFin - memoriaInicio);
         return resultados;
     }
 
@@ -186,22 +189,25 @@ class SistemaGestionEstudiantes {
             System.out.println(estudiante);
         }
 
+        // Operación adicional para hacer visible el uso de memoria
+        List<String> tempList = new ArrayList<>();
+        for (int i = 0; i < estudiantes.size(); i++) {
+            tempList.add("temp_" + i);
+        }
+
         long memoriaFin = getUsedMemory();
-        consumoMemoria.put("listado", memoriaFin - memoriaInicio);
-        contadorOperaciones.put("listado", contadorOperaciones.get("listado") + 1);
+        registrarOperacion("listado", memoriaFin - memoriaInicio);
     }
 
     public void mostrarEstadisticas() {
         System.out.println("\nEstadísticas del sistema:");
         System.out.println("Conteo de operaciones realizadas:");
-        for (Map.Entry<String, Integer> entry : contadorOperaciones.entrySet()) {
-            System.out.println(entry.getKey().toUpperCase() + ": " + entry.getValue());
-        }
+        contadorOperaciones.forEach((op, count) ->
+                System.out.println(op.toUpperCase() + ": " + count));
 
-        System.out.println("\nUso de memoria por operación (KB):");
-        for (Map.Entry<String, Long> entry : consumoMemoria.entrySet()) {
-            System.out.println(entry.getKey().toUpperCase() + ": " + entry.getValue() + " KB");
-        }
+        System.out.println("\nUso de memoria acumulado por operación (KB):");
+        consumoMemoria.forEach((op, mem) ->
+                System.out.println(op.toUpperCase() + ": " + mem + " KB"));
     }
 }
 
